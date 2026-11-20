@@ -1,0 +1,1836 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Field Sales Sinau Jabodetabek — Web CRM & WebGIS</title>
+    
+    <!-- Google Fonts: Inter & Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Leaflet.js CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        /* V20 Lightweight 3D Glassmorphism (Optimized for Mobile GPU & Smooth Scroll) */
+        :root {
+            --bg-gradient: linear-gradient(160deg, #093d2c 0%, #031f16 55%, #010e0a 100%);
+            --glass-bg: rgba(6, 36, 26, 0.92);
+            --glass-card: rgba(11, 52, 38, 0.85);
+            --glass-border: rgba(52, 211, 153, 0.28);
+            --glass-highlight: rgba(167, 243, 208, 0.14);
+            --text-primary: #ecfdf5;
+            --text-secondary: #a7f3d0;
+            --input-bg: rgba(2, 22, 16, 0.9);
+            --shadow-3d: 0 8px 20px -4px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.14);
+            --shadow-btn: 0 4px 0 #044e38, 0 6px 12px rgba(0, 0, 0, 0.35);
+            --shadow-btn-active: 0 1px 0 #044e38, 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        html.light-theme {
+            --bg-gradient: linear-gradient(160deg, #d1fae5 0%, #ecfdf5 55%, #a7f3d0 100%);
+            --glass-bg: rgba(255, 255, 255, 0.94);
+            --glass-card: rgba(240, 253, 244, 0.95);
+            --glass-border: rgba(16, 185, 129, 0.35);
+            --glass-highlight: rgba(255, 255, 255, 0.95);
+            --text-primary: #022c22;
+            --text-secondary: #065f46;
+            --input-bg: #ffffff;
+            --shadow-3d: 0 8px 18px -4px rgba(6, 78, 59, 0.14), inset 0 1px 1px rgba(255, 255, 255, 0.95);
+            --shadow-btn: 0 3px 0 #059669, 0 6px 12px rgba(6, 78, 59, 0.18);
+            --shadow-btn-active: 0 1px 0 #059669, 0 2px 6px rgba(6, 78, 59, 0.15);
+        }
+
+        body {
+            background: var(--bg-gradient);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Ringan di HP: Tanpa backdrop-filter berat di mobile, aktif halus hanya di layar besar */
+        .glass-3d {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow-3d);
+        }
+
+        .glass-card-3d {
+            background: var(--glass-card);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow-3d);
+            transition: border-color 0.15s ease;
+        }
+
+        @media (min-width: 1024px) {
+            .glass-3d {
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+            }
+            .glass-card-3d {
+                backdrop-filter: blur(8px);
+                -webkit-backdrop-filter: blur(8px);
+            }
+        }
+
+        .glass-card-3d:hover {
+            border-color: rgba(52, 211, 153, 0.55);
+        }
+
+        /* Touch-Friendly Minimum 44px untuk HP */
+        button, select, input, textarea {
+            min-height: 44px;
+        }
+
+        /* 3D Tactile Sidebar Button */
+        .sidebar-btn-3d {
+            background: var(--glass-card);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18), inset 0 1px 1px var(--glass-highlight);
+            transition: transform 0.15s ease, border-color 0.15s ease;
+        }
+
+        .sidebar-btn-3d:active {
+            transform: scale(0.98);
+        }
+
+        .sidebar-btn-3d.active {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #ffffff !important;
+            border-color: #6ee7b7;
+            box-shadow: 0 6px 14px rgba(16, 185, 129, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.45);
+        }
+
+        .sidebar-btn-3d.active .icon-box {
+            background: rgba(255, 255, 255, 0.24);
+            color: #ffffff;
+        }
+
+        /* 3D Push Button */
+        .btn-3d-emerald {
+            background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+            color: #ffffff;
+            box-shadow: var(--shadow-btn);
+            border: 1px solid #34d399;
+            transition: transform 0.1s ease;
+        }
+
+        .btn-3d-emerald:active {
+            transform: translateY(2px);
+            box-shadow: var(--shadow-btn-active);
+        }
+
+        /* Form Inputs */
+        .input-glass {
+            background: var(--input-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+            transition: border-color 0.15s ease;
+        }
+
+        .input-glass:focus {
+            outline: none;
+            border-color: #10b981;
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
+        }
+
+        html.light-theme .input-glass {
+            box-shadow: inset 0 1px 2px rgba(6, 78, 59, 0.08);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(16, 185, 129, 0.38);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(16, 185, 129, 0.68);
+        }
+
+        .leaflet-container {
+            font-family: 'Inter', sans-serif !important;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-emerald-500 selection:text-white flex flex-col min-h-screen">
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed top-4 right-4 z-[9999] flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+    <!-- Top Header -->
+    <header class="glass-3d sticky top-0 z-40 px-4 py-2.5 sm:px-6 border-b border-emerald-500/25">
+        <div class="max-w-[1640px] mx-auto flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <button id="mobile-menu-btn" onclick="toggleMobileSidebar()" class="lg:hidden p-2.5 rounded-xl glass-card-3d text-emerald-400 active:scale-95" aria-label="Buka Menu Sidebar">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                </button>
+                
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-700 flex items-center justify-center shadow-lg shadow-emerald-500/30 border border-emerald-300/40 shrink-0">
+                    <i data-lucide="radar" class="w-5 h-5 text-white"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="font-display font-extrabold text-sm sm:text-lg tracking-tight leading-tight">Field Sales <span class="text-emerald-400">Sinau Jabodetabek</span></h1>
+                        <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 shrink-0">V20 Lite</span>
+                    </div>
+                    <p class="text-[11px] opacity-80 mt-0.5 hidden sm:block">Web CRM & WebGIS Akuisisi Merchant, Visit Sales, Deploy & Validasi Eligible</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 sm:gap-3">
+                <div class="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-xl glass-card-3d text-xs">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span class="opacity-85 font-medium">Profil Aktif: <strong id="header-active-sales" class="text-emerald-400">-</strong></span>
+                </div>
+
+                <button onclick="toggleTheme()" id="theme-toggle-btn" class="p-2.5 rounded-xl glass-card-3d flex items-center gap-2 text-xs font-semibold hover:border-emerald-400 transition cursor-pointer" title="Ubah Mode Gelap / Terang">
+                    <i data-lucide="sun" id="theme-icon-sun" class="w-4 h-4 text-amber-300"></i>
+                    <i data-lucide="moon" id="theme-icon-moon" class="w-4 h-4 text-emerald-700 hidden"></i>
+                    <span class="hidden sm:inline" id="theme-label">Mode Terang</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container: 5 Sidebar Kiri + Workspace Utama -->
+    <div class="flex-1 max-w-[1640px] w-full mx-auto flex flex-col lg:flex-row gap-4 p-3 sm:p-4">
+        
+        <!-- Mobile Backdrop -->
+        <div id="sidebar-backdrop" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-black/65 backdrop-blur-sm z-40 hidden lg:hidden"></div>
+
+        <!-- ===================================================================== -->
+        <!-- 5 SIDEBAR MENU UTAMA (KIRI - BESAR, JELAS, 3D GLASSMORPHISM)          -->
+        <!-- ===================================================================== -->
+        <aside id="app-sidebar" class="fixed lg:static inset-y-0 left-0 z-50 w-72 lg:w-80 shrink-0 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-out p-4 lg:p-0 flex flex-col gap-3 glass-3d lg:bg-transparent lg:backdrop-blur-none lg:border-none lg:shadow-none overflow-y-auto">
+            
+            <div class="flex items-center justify-between lg:hidden pb-2 border-b border-emerald-500/20">
+                <span class="font-display font-bold text-sm uppercase tracking-wider text-emerald-400">5 Modul Utama</span>
+                <button onclick="toggleMobileSidebar()" class="p-2 rounded-xl glass-card-3d text-emerald-400">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="glass-3d rounded-3xl p-3 flex flex-col gap-2.5">
+                <div class="px-2 pt-1 pb-1 flex items-center justify-between">
+                    <span class="text-[11px] font-bold uppercase tracking-wider opacity-75">Navigasi 5 Sidebar</span>
+                    <span class="text-[11px] font-bold text-emerald-400" id="sidebar-total-badge">0 Toko</span>
+                </div>
+
+                <!-- Sidebar (1): Nama Sales & Area Akuisisi -->
+                <button onclick="switchSidebar(1)" id="nav-btn-1" class="sidebar-btn-3d active w-full text-left p-3.5 rounded-2xl flex items-center gap-3.5 cursor-pointer">
+                    <div class="icon-box w-11 h-11 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 transition">
+                        <i data-lucide="user-plus" class="w-5 h-5"></i>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <div class="text-[10px] font-bold uppercase tracking-wider opacity-75">Sidebar (1)</div>
+                        <div class="font-display font-bold text-sm sm:text-[15px] truncate">Sales & Area Akuisisi</div>
+                        <div class="text-[11px] opacity-80 truncate">Input Manual & Profil Sales</div>
+                    </div>
+                </button>
+
+                <!-- Sidebar (2): Visit Sales -->
+                <button onclick="switchSidebar(2)" id="nav-btn-2" class="sidebar-btn-3d w-full text-left p-3.5 rounded-2xl flex items-center gap-3.5 cursor-pointer">
+                    <div class="icon-box w-11 h-11 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 transition">
+                        <i data-lucide="clipboard-check" class="w-5 h-5"></i>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <div class="text-[10px] font-bold uppercase tracking-wider opacity-75">Sidebar (2)</div>
+                        <div class="font-display font-bold text-sm sm:text-[15px] truncate">Visit Sales</div>
+                        <div class="text-[11px] opacity-80 truncate">GPS, Tgl, Toko, Alamat & Wilayah</div>
+                    </div>
+                </button>
+
+                <!-- Sidebar (3): Maps Alamat Toko & Deploy -->
+                <button onclick="switchSidebar(3)" id="nav-btn-3" class="sidebar-btn-3d w-full text-left p-3.5 rounded-2xl flex items-center gap-3.5 cursor-pointer">
+                    <div class="icon-box w-11 h-11 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 transition">
+                        <i data-lucide="map-pinned" class="w-5 h-5"></i>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <div class="text-[10px] font-bold uppercase tracking-wider opacity-75">Sidebar (3)</div>
+                        <div class="font-display font-bold text-sm sm:text-[15px] truncate">Maps Toko & Deploy</div>
+                        <div class="text-[11px] opacity-80 truncate">Peta Titik & Dropdown Deploy</div>
+                    </div>
+                </button>
+
+                <!-- Sidebar (4): Merchant Aktif Payment -->
+                <button onclick="switchSidebar(4)" id="nav-btn-4" class="sidebar-btn-3d w-full text-left p-3.5 rounded-2xl flex items-center gap-3.5 cursor-pointer">
+                    <div class="icon-box w-11 h-11 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 transition">
+                        <i data-lucide="wallet" class="w-5 h-5"></i>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <div class="text-[10px] font-bold uppercase tracking-wider opacity-75">Sidebar (4)</div>
+                        <div class="font-display font-bold text-sm sm:text-[15px] truncate">Merchant Aktif Payment</div>
+                        <div class="text-[11px] opacity-80 truncate">Dropdown 1 Week – 5 Week</div>
+                    </div>
+                </button>
+
+                <!-- Sidebar (5): Keterangan Akuisisi & Eligible Pembayaran -->
+                <button onclick="switchSidebar(5)" id="nav-btn-5" class="sidebar-btn-3d w-full text-left p-3.5 rounded-2xl flex items-center gap-3.5 cursor-pointer">
+                    <div class="icon-box w-11 h-11 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 transition">
+                        <i data-lucide="badge-check" class="w-5 h-5"></i>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <div class="text-[10px] font-bold uppercase tracking-wider opacity-75">Sidebar (5)</div>
+                        <div class="font-display font-bold text-sm sm:text-[15px] truncate">Eligible Pembayaran</div>
+                        <div class="text-[11px] opacity-80 truncate">Approve + Done + Min 1 Week</div>
+                    </div>
+                </button>
+            </div>
+
+            <!-- Panel Utilitas Data (Dummy & Reset) -->
+            <div class="glass-card-3d rounded-2xl p-3.5 text-xs space-y-2.5">
+                <div class="flex items-center justify-between font-bold text-emerald-400">
+                    <span class="flex items-center gap-1.5"><i data-lucide="database" class="w-3.5 h-3.5"></i> Database Lokal</span>
+                    <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20">Apps Script Ready</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="loadDummyData(true)" class="py-2 px-2.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/30 text-emerald-300 font-semibold text-[11px] flex items-center justify-center gap-1 cursor-pointer">
+                        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                        <span>Data Contoh</span>
+                    </button>
+                    <button onclick="openResetModal()" class="py-2 px-2.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-400/30 text-rose-300 font-semibold text-[11px] flex items-center justify-center gap-1 cursor-pointer">
+                        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                        <span>Reset Data</span>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ===================================================================== -->
+        <!-- MAIN WORKSPACE PANEL (KONTEN DARI 5 SIDEBAR)                          -->
+        <!-- ===================================================================== -->
+        <main class="flex-1 min-w-0">
+
+            <!-- ================================================================= -->
+            <!-- SIDEBAR (1): NAMA SALES & AREA AKUISISI (ISI MANUAL)              -->
+            <!-- ================================================================= -->
+            <section id="panel-1" class="sidebar-panel space-y-4">
+                <div class="glass-3d rounded-3xl p-4 sm:p-6 space-y-5">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-emerald-500/20 pb-4">
+                        <div>
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Sidebar (1) • Registrasi & Profil Lapangan</span>
+                            <h2 class="font-display font-extrabold text-xl sm:text-2xl mt-0.5">Nama Sales & Area Akuisisi</h2>
+                        </div>
+                        <button onclick="switchSidebar(2)" class="btn-3d-emerald px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 self-start sm:self-auto cursor-pointer">
+                            <span>Lanjut ke Visit Sales (Sidebar 2)</span>
+                            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+
+                    <!-- Form Input Manual Sales & Area Akuisisi -->
+                    <form onsubmit="handleSaveSalesProfile(event)" class="glass-card-3d rounded-2xl p-4 sm:p-5 space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold mb-1.5 opacity-90">Nama Sales (Isi Manual) <span class="text-rose-400">*</span></label>
+                                <div class="relative">
+                                    <i data-lucide="user" class="w-4 h-4 text-emerald-400 absolute left-3.5 top-3"></i>
+                                    <input type="text" id="s1-nama-sales" required placeholder="Contoh: Ahmad Fauzi" class="input-glass w-full pl-10 pr-3.5 py-2.5 rounded-xl text-sm">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold mb-1.5 opacity-90">Area Akuisisi (Isi Manual) <span class="text-rose-400">*</span></label>
+                                <div class="relative">
+                                    <i data-lucide="map-pin" class="w-4 h-4 text-emerald-400 absolute left-3.5 top-3"></i>
+                                    <input type="text" id="s1-area-akuisisi" required placeholder="Contoh: Cikupa & Balaraja - Tangerang" class="input-glass w-full pl-10 pr-3.5 py-2.5 rounded-xl text-sm">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+                            <p class="text-xs opacity-75">Profil yang disimpan akan otomatis terisi di form <strong>Sidebar (2) Visit Sales</strong> dan tersinkron ke <strong>4 Bar Bawah</strong>.</p>
+                            <button type="submit" class="btn-3d-emerald px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shrink-0 cursor-pointer">
+                                <i data-lucide="save" class="w-4 h-4"></i>
+                                <span>Simpan & Aktifkan Profil Sales</span>
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Daftar Profil Sales Tersimpan (Klik untuk Pilih Cepat) -->
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-display font-bold text-sm sm:text-base flex items-center gap-2">
+                                <i data-lucide="users" class="w-4 h-4 text-emerald-400"></i>
+                                <span>Daftar Profil Sales & Area Terdaftar (Klik untuk Dipakai)</span>
+                            </h3>
+                            <span class="text-xs opacity-75" id="s1-profile-count">0 Profil</span>
+                        </div>
+                        <div id="s1-sales-profiles-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                            <!-- Diisi secara dinamis oleh JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================================================================= -->
+            <!-- SIDEBAR (2): VISIT SALES (LONG LATT, TGL, NAMA TOKO, NO, ALAMAT) -->
+            <!-- ================================================================= -->
+            <section id="panel-2" class="sidebar-panel hidden space-y-4">
+                <div class="glass-3d rounded-3xl p-4 sm:p-6 space-y-5">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-emerald-500/20 pb-4">
+                        <div>
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Sidebar (2) • Pendataan Kunjungan Lapangan</span>
+                            <h2 class="font-display font-extrabold text-xl sm:text-2xl mt-0.5">Form Visit Sales</h2>
+                        </div>
+                        <button type="button" onclick="resetVisitForm()" class="self-start sm:self-auto px-3.5 py-2 rounded-xl glass-card-3d text-xs font-semibold flex items-center gap-1.5 hover:border-emerald-400 cursor-pointer">
+                            <i data-lucide="eraser" class="w-3.5 h-3.5 text-emerald-400"></i>
+                            <span>Bersihkan Form</span>
+                        </button>
+                    </div>
+
+                    <form id="visit-form" onsubmit="handleSaveVisit(event)" class="space-y-4">
+                        <input type="hidden" id="visit-edit-id" value="">
+
+                        <!-- Info Sales Aktif dari Sidebar 1 (Bisa juga diedit manual) -->
+                        <div class="glass-card-3d rounded-2xl p-4 grid grid-cols-1 md:grid-cols-2 gap-4 bg-emerald-500/5">
+                            <div>
+                                <label class="block text-xs font-semibold mb-1 text-emerald-300">Nama Sales Pelaksana <span class="text-rose-400">*</span></label>
+                                <input type="text" id="v-nama-sales" required placeholder="Isi atau pilih dari Sidebar (1)" class="input-glass w-full px-3.5 py-2.5 rounded-xl text-sm font-semibold">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold mb-1 text-emerald-300">Area Akuisisi <span class="text-rose-400">*</span></label>
+                                <input type="text" id="v-area-akuisisi" required placeholder="Contoh: Cikupa - Kab. Tangerang" class="input-glass w-full px-3.5 py-2.5 rounded-xl text-sm font-semibold">
+                            </div>
+                        </div>
+
+                        <!-- Field Wajib Sidebar (2): Long Latt, Tgl, Nama Toko, NO Terdaftar, Alamat, District, Regency -->
+                        <div class="glass-card-3d rounded-2xl p-4 sm:p-5 space-y-4">
+                            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                                <!-- Long Latt -->
+                                <div class="lg:col-span-8">
+                                    <label class="block text-xs font-semibold mb-1.5 opacity-90">Long Latt (Latitude, Longitude) <span class="text-rose-400">*</span></label>
+                                    <div class="flex flex-col sm:flex-row gap-2">
+                                        <div class="relative flex-1">
+                                            <i data-lucide="crosshair" class="w-4 h-4 text-emerald-400 absolute left-3.5 top-3"></i>
+                                            <input type="text" id="v-long-latt" required placeholder="-6.224150, 106.518920" class="input-glass w-full pl-10 pr-3.5 py-2.5 rounded-xl text-sm font-mono">
+                                        </div>
+                                        <button type="button" onclick="captureAutoGPS()" id="btn-auto-gps" class="px-4 py-2.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/35 border border-emerald-400/50 text-emerald-300 font-bold text-xs flex items-center justify-center gap-2 shrink-0 cursor-pointer transition">
+                                            <i data-lucide="navigation" class="w-4 h-4"></i>
+                                            <span>Ambil GPS Otomatis</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Tgl -->
+                                <div class="lg:col-span-4">
+                                    <label class="block text-xs font-semibold mb-1.5 opacity-90">Tgl Kunjungan <span class="text-rose-400">*</span></label>
+                                    <input type="date" id="v-tgl" required class="input-glass w-full px-3.5 py-2.5 rounded-xl text-sm">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <!-- Nama Toko -->
+                                <div>
+                                    <label class="block text-xs font-semibold mb-1.5 opacity-90">Nama Toko <span class="text-rose-400">*</span></label>
+                                    <div class="relative">
+                                        <i data-lucide="store" class="w-4 h-4 text-emerald-400 absolute left-3.5 top-3"></i>
+                                        <input type="text" id="v-nama-toko" required placeholder="Contoh: Toko Sembako Sumber Rezeki" class="input-glass w-full pl-10 pr-3.5 py-2.5 rounded-xl text-sm">
+                                    </div>
+                                </div>
+
+                                <!-- NO Terdaftar -->
+                                <div>
+                                    <label class="block text-xs font-semibold mb-1.5 opacity-90">NO Terdaftar (HP / WhatsApp) <span class="text-rose-400">*</span></label>
+                                    <div class="relative">
+                                        <i data-lucide="phone" class="w-4 h-4 text-emerald-400 absolute left-3.5 top-3"></i>
+                                        <input type="tel" id="v-no-terdaftar" required placeholder="Contoh: 081234567890" class="input-glass w-full pl-10 pr-3.5 py-2.5 rounded-xl text-sm font-mono">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Alamat -->
+                            <div>
+                                <label class="block text-xs font-semibold mb-1.5 opacity-90">Alamat Lengkap Toko <span class="text-rose-400">*</span></label>
+                                <textarea id="v-alamat" rows="2" required placeholder="Jl. Raya Serang KM 24, RT 03/RW 02, Desa Talagasari..." class="input-glass w-full px-3.5 py-2.5 rounded-xl text-sm"></textarea>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <!-- District -->
+                                <div>
+                                    <label class="block text-xs font-semibold mb-1.5 opacity-90">District (Kecamatan) <span class="text-rose-400">*</span></label>
+                                    <input type="text" id="v-district" required placeholder="Contoh: Balaraja" class="input-glass w-full px-3.5 py-2.5 rounded-xl text-sm">
+                                </div>
+
+                                <!-- Regency -->
+                                <div>
+                                    <label class="block text-xs font-semibold mb-1.5 opacity-90">Regency (Kabupaten / Kota) <span class="text-rose-400">*</span></label>
+                                    <input type="text" id="v-regency" required placeholder="Contoh: Kabupaten Tangerang" class="input-glass w-full px-3.5 py-2.5 rounded-xl text-sm">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
+                            <span class="text-xs opacity-75">Data baru akan otomatis masuk dengan status awal <strong>Pending Deploy</strong> dan dapat diproses di Sidebar (3).</span>
+                            <button type="submit" class="btn-3d-emerald w-full sm:w-auto px-6 py-3 rounded-xl font-display font-bold text-sm flex items-center justify-center gap-2 cursor-pointer">
+                                <i data-lucide="save" class="w-4 h-4"></i>
+                                <span id="v-submit-btn-text">Simpan Data Visit</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- ================================================================= -->
+            <!-- SIDEBAR (3): MAPS ALAMAT TOKO & DEPLOY (DONE / PROSES / PENDING)   -->
+            <!-- ================================================================= -->
+            <section id="panel-3" class="sidebar-panel hidden space-y-4">
+                <div class="glass-3d rounded-3xl p-4 sm:p-6 space-y-4">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-emerald-500/20 pb-4">
+                        <div>
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Sidebar (3) • Verifikasi Lokasi & Eksekusi Pemasangan</span>
+                            <h2 class="font-display font-extrabold text-xl sm:text-2xl mt-0.5">Maps Alamat Toko & Status Deploy</h2>
+                        </div>
+
+                        <!-- Pilih Merchant untuk Fokus Maps & Ubah Status Deploy -->
+                        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                            <select id="s3-merchant-selector" onchange="onSelectMerchantSidebar3(this.value)" class="input-glass px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold min-w-[220px]">
+                                <!-- Diisi JS -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                        <!-- Peta Leaflet Interaktif (Lazy Load di HP) -->
+                        <div class="lg:col-span-7 space-y-2">
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="font-semibold opacity-85">Peta Koordinat Alamat Toko (Klik pin untuk detail)</span>
+                                <div class="flex items-center gap-3">
+                                    <span class="inline-flex items-center gap-1 text-emerald-400 font-semibold"><span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span> Done</span>
+                                    <span class="inline-flex items-center gap-1 text-amber-400 font-semibold"><span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span> Proses/Pending</span>
+                                </div>
+                            </div>
+                            <div class="rounded-2xl overflow-hidden border border-emerald-500/30 shadow-lg relative">
+                                <div id="s3-leaflet-map" class="w-full h-[300px] sm:h-[400px] bg-emerald-950/50"></div>
+                            </div>
+                        </div>
+
+                        <!-- Detail Toko Terpilih & Kontrol Dropdown Deploy -->
+                        <div class="lg:col-span-5 flex flex-col justify-between gap-4">
+                            <div id="s3-selected-card" class="glass-card-3d rounded-2xl p-4 sm:p-5 space-y-4">
+                                <!-- Diisi JS sesuai merchant terpilih -->
+                            </div>
+
+                            <!-- Daftar Ringkas Semua Toko untuk Quick Switch -->
+                            <div class="glass-card-3d rounded-2xl p-4 space-y-2.5 max-h-52 overflow-y-auto">
+                                <div class="text-xs font-bold uppercase tracking-wider text-emerald-400">Daftar Cepat Toko Terdaftar</div>
+                                <div id="s3-quick-list" class="space-y-2">
+                                    <!-- Diisi JS -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================================================================= -->
+            <!-- SIDEBAR (4): MERCHANT AKTIF PAYMENT (DROPDOWN 1 WEEK - 5 WEEK)    -->
+            <!-- ================================================================= -->
+            <section id="panel-4" class="sidebar-panel hidden space-y-4">
+                <div class="glass-3d rounded-3xl p-4 sm:p-6 space-y-5">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-emerald-500/20 pb-4">
+                        <div>
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Sidebar (4) • Monitoring Transaksi Mingguan</span>
+                            <h2 class="font-display font-extrabold text-xl sm:text-2xl mt-0.5">Merchant Aktif Payment (1 Week – 5 Week)</h2>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <select id="s4-filter-week" onchange="renderSidebar4()" class="input-glass px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold">
+                                <option value="ALL">Semua Kategori Payment</option>
+                                <option value="1 Week">1 Week</option>
+                                <option value="2 Week">2 Week</option>
+                                <option value="3 Week">3 Week</option>
+                                <option value="4 Week">4 Week</option>
+                                <option value="5 Week">5 Week</option>
+                                <option value="- Belum Aktif">- Belum Aktif</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Rekap Pill 1 Week - 5 Week -->
+                    <div id="s4-week-summary-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
+                        <!-- Diisi JS -->
+                    </div>
+
+                    <!-- Daftar Kartu Merchant dengan Dropdown Aktif Payment -->
+                    <div id="s4-merchant-cards" class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                        <!-- Diisi JS -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================================================================= -->
+            <!-- SIDEBAR (5): KETERANGAN AKUISISI & ELIGIBLE PEMBAYARAN            -->
+            <!-- ================================================================= -->
+            <section id="panel-5" class="sidebar-panel hidden space-y-4">
+                <div class="glass-3d rounded-3xl p-4 sm:p-6 space-y-5">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-emerald-500/20 pb-4">
+                        <div>
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Sidebar (5) • Validasi Pencairan Fee / Insentif</span>
+                            <h2 class="font-display font-extrabold text-xl sm:text-2xl mt-0.5">Keterangan Akuisisi & Eligible Pembayaran</h2>
+                        </div>
+                        <button onclick="exportEligibleCSV()" class="btn-3d-emerald px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 self-start md:self-auto cursor-pointer">
+                            <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+                            <span>Export Laporan CSV</span>
+                        </button>
+                    </div>
+
+                    <!-- Banner Aturan Syarat Pembayaran -->
+                    <div class="glass-card-3d rounded-2xl p-4 border-l-4 border-l-emerald-400 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                        <div class="space-y-1">
+                            <div class="font-display font-bold text-sm sm:text-base text-emerald-300 flex items-center gap-2">
+                                <i data-lucide="shield-check" class="w-5 h-5"></i>
+                                <span>Syarat Mutlak Pencairan Pembayaran Akuisisi Toko:</span>
+                            </div>
+                            <p class="text-xs sm:text-sm opacity-90 leading-relaxed">
+                                Toko yang diakuisisi akan dibayarkan apabila memenuhi <strong>3 Syarat Wajib</strong> sekaligus:
+                                <span class="inline-block px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">1. Eligible Approve Akuisisi</span> +
+                                <span class="inline-block px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">2. Done Deploy</span> +
+                                <span class="inline-block px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">3. Aktif Payment Minimal 1 Week (1W–5W)</span>.
+                            </p>
+                        </div>
+                        <div class="flex items-center gap-3 shrink-0">
+                            <div class="px-4 py-2.5 rounded-2xl bg-emerald-500/20 border border-emerald-400/40 text-center">
+                                <div class="text-[10px] font-bold uppercase opacity-80">Siap Dibayar</div>
+                                <div id="s5-eligible-count" class="font-display font-extrabold text-2xl text-emerald-300">0</div>
+                            </div>
+                            <div class="px-4 py-2.5 rounded-2xl bg-amber-500/15 border border-amber-400/30 text-center">
+                                <div class="text-[10px] font-bold uppercase opacity-80">Belum Syarat</div>
+                                <div id="s5-not-eligible-count" class="font-display font-extrabold text-2xl text-amber-300">0</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filter Status Eligible -->
+                    <div class="flex flex-wrap items-center gap-2">
+                        <select id="s5-filter-status" onchange="renderSidebar5()" class="input-glass px-3.5 py-2 rounded-xl text-xs font-semibold">
+                            <option value="ALL">Tampilkan Semua Toko Akuisisi</option>
+                            <option value="ELIGIBLE">✅ Hanya ELIGIBLE DIBAYAR</option>
+                            <option value="PENDING_SYARAT">⏳ Belum Memenuhi Syarat</option>
+                        </select>
+                    </div>
+
+                    <!-- Tabel / Kartu Detail Validasi 3 Syarat per Toko -->
+                    <div id="s5-cards-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Diisi JS -->
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 4 BAR DI BAWAH (BOTTOM INTERACTIVE PANEL TERINTEGRASI REAL-TIME)      -->
+    <!-- ===================================================================== -->
+    <section aria-label="4 Bar Bawah Terintegrasi" class="max-w-[1640px] w-full mx-auto px-3 sm:px-4 pb-6 pt-1">
+        <div class="glass-3d rounded-3xl p-3.5 sm:p-4 border border-emerald-400/35">
+            <div class="flex items-center justify-between mb-3 px-1">
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+                    <span class="font-display font-extrabold text-xs sm:text-sm uppercase tracking-wider text-emerald-300">Panel Kontrol 4 Bar Bawah (Sinkronisasi Real-Time)</span>
+                </div>
+                <span class="text-[11px] opacity-75 hidden sm:inline">Pilih Sales di Bar (1) &rarr; Otomatis menyaring Bar (2), Bar (3) & Bar (4)</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3.5">
+                
+                <!-- BAR (1): NAMA SALES (DROPDOWN) -->
+                <div class="glass-card-3d rounded-2xl p-3.5 flex flex-col justify-between space-y-2.5">
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="text-[11px] font-extrabold uppercase tracking-wider text-emerald-400">Bar (1) • Nama Sales</span>
+                            <i data-lucide="users" class="w-4 h-4 text-emerald-400"></i>
+                        </div>
+                        <label for="bar1-sales-select" class="block text-[11px] opacity-75 mb-1">Pilih Nama Sales Lapangan:</label>
+                        <select id="bar1-sales-select" onchange="onBar1SalesChange(this.value)" class="input-glass w-full px-3 py-2.5 rounded-xl text-xs sm:text-sm font-bold cursor-pointer">
+                            <!-- Diisi otomatis oleh JS -->
+                        </select>
+                    </div>
+                    <div id="bar1-sales-summary" class="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-[11px] space-y-0.5">
+                        <!-- Info ringkas sales terpilih -->
+                    </div>
+                </div>
+
+                <!-- BAR (2): NAMA MERCHANT (TERINTEGRASI KE BAR 1) -->
+                <div class="glass-card-3d rounded-2xl p-3.5 flex flex-col justify-between space-y-2.5">
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="text-[11px] font-extrabold uppercase tracking-wider text-emerald-400">Bar (2) • Nama Merchant</span>
+                            <span id="bar2-count-badge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">0 Toko</span>
+                        </div>
+                        <label for="bar2-merchant-select" class="block text-[11px] opacity-75 mb-1">Merchant Milik Sales Terpilih:</label>
+                        <select id="bar2-merchant-select" onchange="onBar2MerchantChange(this.value)" class="input-glass w-full px-3 py-2.5 rounded-xl text-xs sm:text-sm font-bold cursor-pointer">
+                            <!-- Diisi otomatis berdasarkan Bar 1 -->
+                        </select>
+                    </div>
+                    <div id="bar2-merchant-detail" class="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-[11px] space-y-0.5">
+                        <!-- Detail singkat merchant terpilih -->
+                    </div>
+                </div>
+
+                <!-- BAR (3): MENAMPILKAN ISI DATA MAPS MERCHANT -->
+                <div class="glass-card-3d rounded-2xl p-3.5 flex flex-col justify-between space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-extrabold uppercase tracking-wider text-emerald-400">Bar (3) • Data Maps Merchant</span>
+                        <a id="bar3-gmaps-link" href="https://maps.google.com" target="_blank" rel="noopener noreferrer" class="text-[11px] font-bold text-emerald-300 hover:underline flex items-center gap-1 min-h-0 py-1 px-2 rounded-lg bg-emerald-500/15">
+                            <span>Google Maps</span>
+                            <i data-lucide="external-link" class="w-3 h-3"></i>
+                        </a>
+                    </div>
+                    <!-- Preview Peta Ringan / Lazy-Loaded Mini Map di Bar 3 -->
+                    <div id="bar3-map-wrapper" class="w-full h-24 rounded-xl overflow-hidden border border-emerald-500/30 relative bg-emerald-950/60">
+                        <div id="bar3-mini-map" class="w-full h-full hidden"></div>
+                        <button type="button" id="bar3-load-map-btn" onclick="activateBar3Map()" class="w-full h-full flex flex-col items-center justify-center gap-1 text-xs text-emerald-300 hover:bg-emerald-500/10 transition cursor-pointer">
+                            <span class="font-bold flex items-center gap-1.5"><i data-lucide="map-pin" class="w-3.5 h-3.5 text-emerald-400"></i> Tap Muat Mini-Peta Interaktif</span>
+                            <span class="text-[10px] opacity-75">Hemat baterai & kuota HP</span>
+                        </button>
+                    </div>
+                    <div id="bar3-coord-info" class="text-[11px] leading-snug opacity-90 truncate font-mono">
+                        <!-- Koordinat & Alamat -->
+                    </div>
+                </div>
+
+                <!-- BAR (4): STATUS BELUM TERDEPLOY (PENDING DEPLOY) -->
+                <div class="glass-card-3d rounded-2xl p-3.5 flex flex-col justify-between space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-extrabold uppercase tracking-wider text-amber-400">Bar (4) • Pending Deploy</span>
+                        <span id="bar4-pending-count" class="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/40">0 Pending</span>
+                    </div>
+                    <div id="bar4-pending-list" class="space-y-1.5 max-h-32 overflow-y-auto pr-1">
+                        <!-- Daftar merchant belum terdeploy milik sales terpilih -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Modal Konfirmasi Reset Data -->
+    <div id="reset-modal" class="fixed inset-0 z-[999] bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="glass-3d rounded-3xl max-w-md w-full p-6 space-y-4 border border-rose-400/40">
+            <div class="flex items-center gap-3 text-rose-400">
+                <div class="w-10 h-10 rounded-xl bg-rose-500/20 flex items-center justify-center">
+                    <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+                </div>
+                <h3 class="font-display font-bold text-lg">Reset Database Lokal?</h3>
+            </div>
+            <p class="text-xs sm:text-sm opacity-85 leading-relaxed">
+                Seluruh data kunjungan, profil sales, dan status merchant yang tersimpan di browser akan dihapus. Anda dapat memuat ulang data contoh kapan saja.
+            </p>
+            <div class="flex justify-end gap-2.5 pt-2">
+                <button onclick="closeResetModal()" class="px-4 py-2 rounded-xl glass-card-3d text-xs font-bold cursor-pointer">Batal</button>
+                <button onclick="executeResetData()" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold shadow-lg cursor-pointer">Ya, Hapus Semua</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- JAVASCRIPT ENGINE: CRM, WEBGIS LEAFLET, SINKRONISASI 5 SIDEBAR & 4 BAR -->
+    <!-- ===================================================================== -->
+    <script>
+        const STORAGE_KEY_VISITS = 'sinau_jabodetabek_v20_visits';
+        const STORAGE_KEY_PROFILES = 'sinau_jabodetabek_v20_profiles';
+        const STORAGE_KEY_THEME = 'sinau_jabodetabek_v20_theme';
+
+        // Fallback memory storage jika localStorage diblokir mode private HP
+        let memoryStorageFallback = {};
+
+        // State Utama
+        let visits = [];
+        let salesProfiles = [];
+        let activeProfile = { namaSales: '', areaAkuisisi: '' };
+        let selectedMerchantIdSidebar3 = null;
+
+        // State 4 Bottom Bar Terintegrasi
+        let bar1SelectedSales = 'ALL';
+        let bar2SelectedMerchantId = '';
+
+        // Instance Peta Leaflet (Lazy-loaded agar loading awal HP sangat cepat)
+        let s3Map = null;
+        let s3MarkersLayer = null;
+        let bar3Map = null;
+        let bar3MarkersLayer = null;
+        let bar3MapActivated = false;
+
+        const DEFAULT_COORDS = [-6.208763, 106.845599]; // Pusat Jabodetabek
+
+        function safeGetStorage(key) {
+            try {
+                return localStorage.getItem(key);
+            } catch (e) {
+                return memoryStorageFallback[key] || null;
+            }
+        }
+
+        function safeSetStorage(key, val) {
+            try {
+                localStorage.setItem(key, val);
+            } catch (e) {
+                memoryStorageFallback[key] = val;
+            }
+        }
+
+        // =====================================================================
+        // 1. INISIALISASI SAAT HALAMAN DIMUAT (INSTAN TANPA BLOCKING MAP)
+        // =====================================================================
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            initTheme();
+            setTodayDate();
+            loadAllFromStorage();
+
+            // Sinkronisasi seluruh tampilan teks & dropdown instan tanpa menunggu tile peta
+            syncAllUI();
+        });
+
+        function setTodayDate() {
+            const now = new Date();
+            const yyyy = now.getFullYear();
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const dd = String(now.getDate()).padStart(2, '0');
+            document.getElementById('v-tgl').value = `${yyyy}-${mm}-${dd}`;
+        }
+
+        // =====================================================================
+        // 2. TEMA DARK / LIGHT EMERALD 3D
+        // =====================================================================
+        function initTheme() {
+            const saved = safeGetStorage(STORAGE_KEY_THEME) || 'dark';
+            applyTheme(saved);
+        }
+
+        function toggleTheme() {
+            const isLight = document.documentElement.classList.contains('light-theme');
+            const next = isLight ? 'dark' : 'light';
+            safeSetStorage(STORAGE_KEY_THEME, next);
+            applyTheme(next);
+        }
+
+        function applyTheme(mode) {
+            const html = document.documentElement;
+            const sun = document.getElementById('theme-icon-sun');
+            const moon = document.getElementById('theme-icon-moon');
+            const label = document.getElementById('theme-label');
+
+            if (mode === 'light') {
+                html.classList.add('light-theme');
+                html.classList.remove('dark');
+                sun.classList.add('hidden');
+                moon.classList.remove('hidden');
+                label.textContent = 'Mode Gelap';
+            } else {
+                html.classList.remove('light-theme');
+                html.classList.add('dark');
+                sun.classList.remove('hidden');
+                moon.classList.add('hidden');
+                label.textContent = 'Mode Terang';
+            }
+        }
+
+        // =====================================================================
+        // 3. NAVIGASI 5 SIDEBAR & DRAWER MOBILE
+        // =====================================================================
+        function switchSidebar(index) {
+            document.querySelectorAll('.sidebar-panel').forEach((panel, idx) => {
+                if (idx + 1 === index) {
+                    panel.classList.remove('hidden');
+                } else {
+                    panel.classList.add('hidden');
+                }
+            });
+
+            document.querySelectorAll('.sidebar-btn-3d').forEach((btn, idx) => {
+                if (idx + 1 === index) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+
+            if (index === 3) {
+                setTimeout(() => {
+                    initOrUpdateSidebar3Map();
+                }, 60);
+            }
+
+            closeMobileSidebar();
+        }
+
+        function toggleMobileSidebar() {
+            const sb = document.getElementById('app-sidebar');
+            const bd = document.getElementById('sidebar-backdrop');
+            if (sb.classList.contains('-translate-x-full')) {
+                sb.classList.remove('-translate-x-full');
+                bd.classList.remove('hidden');
+            } else {
+                closeMobileSidebar();
+            }
+        }
+
+        function closeMobileSidebar() {
+            document.getElementById('app-sidebar').classList.add('-translate-x-full');
+            document.getElementById('sidebar-backdrop').classList.add('hidden');
+        }
+
+        // =====================================================================
+        // 4. STORAGE, DUMMY DATA JABODETABEK & HOOK GOOGLE APPS SCRIPT
+        // =====================================================================
+        function loadAllFromStorage() {
+            try {
+                const rawVisits = safeGetStorage(STORAGE_KEY_VISITS);
+                const rawProfiles = safeGetStorage(STORAGE_KEY_PROFILES);
+
+                if (rawVisits) {
+                    visits = JSON.parse(rawVisits);
+                } else {
+                    loadDummyData(false);
+                    return;
+                }
+
+                salesProfiles = rawProfiles ? JSON.parse(rawProfiles) : [];
+                rebuildProfilesFromVisits();
+
+                if (salesProfiles.length > 0) {
+                    setActiveSalesProfile(salesProfiles[0].namaSales, salesProfiles[0].areaAkuisisi, false);
+                }
+            } catch (e) {
+                console.error('Gagal membaca penyimpanan:', e);
+                visits = [];
+                salesProfiles = [];
+            }
+        }
+
+        function saveAllToStorage() {
+            try {
+                safeSetStorage(STORAGE_KEY_VISITS, JSON.stringify(visits));
+                safeSetStorage(STORAGE_KEY_PROFILES, JSON.stringify(salesProfiles));
+            } catch (e) {
+                showToast('Gagal menyimpan data lokal.', 'error');
+            }
+        }
+
+        // Hook siap tempel jika dipindah ke Google Apps Script (Code.gs)
+        function syncToGoogleAppsScript(payload, action = 'UPSERT') {
+            if (typeof google !== 'undefined' && google.script && google.script.run) {
+                google.script.run
+                    .withSuccessHandler(() => console.log('Tersinkron ke Google Sheets'))
+                    .withFailureHandler(err => console.warn('Apps Script sync error:', err))
+                    .saveFieldCrmRecord(payload, action);
+            }
+        }
+
+        function rebuildProfilesFromVisits() {
+            const map = new Map();
+            salesProfiles.forEach(p => {
+                map.set(p.namaSales.toLowerCase(), p);
+            });
+            visits.forEach(v => {
+                if (v.namaSales && !map.has(v.namaSales.toLowerCase())) {
+                    map.set(v.namaSales.toLowerCase(), {
+                        namaSales: v.namaSales,
+                        areaAkuisisi: v.areaAkuisisi || 'Jabodetabek'
+                    });
+                }
+            });
+            salesProfiles = Array.from(map.values());
+        }
+
+        function loadDummyData(notify = true) {
+            const today = new Date().toISOString().slice(0, 10);
+            salesProfiles = [
+                { namaSales: 'Ahmad Fauzi', areaAkuisisi: 'Tangerang & Jakarta Barat' },
+                { namaSales: 'Rina Marlina', areaAkuisisi: 'Jakarta Selatan & Depok' },
+                { namaSales: 'Dedi Kurniawan', areaAkuisisi: 'Bekasi & Bogor' }
+            ];
+
+            visits = [
+                {
+                    id: 'SNJ-101',
+                    namaSales: 'Ahmad Fauzi',
+                    areaAkuisisi: 'Tangerang & Jakarta Barat',
+                    longLatt: '-6.178306, 106.631889',
+                    lat: -6.178306,
+                    lng: 106.631889,
+                    tgl: today,
+                    namaToko: 'Toko Sembako Berkah Tangerang',
+                    noTerdaftar: '081288112233',
+                    alamat: 'Jl. Daan Mogot No. 45, Sukarasa',
+                    district: 'Tangerang',
+                    regency: 'Kota Tangerang',
+                    deploy: 'Done Deploy',
+                    aktifPayment: '3 Week',
+                    approveAkuisisi: true
+                },
+                {
+                    id: 'SNJ-102',
+                    namaSales: 'Ahmad Fauzi',
+                    areaAkuisisi: 'Tangerang & Jakarta Barat',
+                    longLatt: '-6.168329, 106.758849',
+                    lat: -6.168329,
+                    lng: 106.758849,
+                    tgl: today,
+                    namaToko: 'Konter Pulsa & PPOB Cengkareng Jaya',
+                    noTerdaftar: '085744556677',
+                    alamat: 'Jl. Raya Daan Mogot KM 14, Cengkareng Barat',
+                    district: 'Cengkareng',
+                    regency: 'Jakarta Barat',
+                    deploy: 'Pending Deploy',
+                    aktifPayment: '- Belum Aktif',
+                    approveAkuisisi: true
+                },
+                {
+                    id: 'SNJ-103',
+                    namaSales: 'Rina Marlina',
+                    areaAkuisisi: 'Jakarta Selatan & Depok',
+                    longLatt: '-6.261493, 106.810600',
+                    lat: -6.261493,
+                    lng: 106.810600,
+                    tgl: today,
+                    namaToko: 'Minimarket Mitra Kemang Jaksel',
+                    noTerdaftar: '081377889900',
+                    alamat: 'Jl. Kemang Raya No. 88, Bangka',
+                    district: 'Mampang Prapatan',
+                    regency: 'Jakarta Selatan',
+                    deploy: 'Done Deploy',
+                    aktifPayment: '2 Week',
+                    approveAkuisisi: true
+                },
+                {
+                    id: 'SNJ-104',
+                    namaSales: 'Rina Marlina',
+                    areaAkuisisi: 'Jakarta Selatan & Depok',
+                    longLatt: '-6.385589, 106.830711',
+                    lat: -6.385589,
+                    lng: 106.830711,
+                    tgl: today,
+                    namaToko: 'Warung Kopi & Agen Margonda Depok',
+                    noTerdaftar: '087811992288',
+                    alamat: 'Jl. Margonda Raya No. 210, Kemiri Muka',
+                    district: 'Beji',
+                    regency: 'Kota Depok',
+                    deploy: 'Proses Deploy',
+                    aktifPayment: '- Belum Aktif',
+                    approveAkuisisi: true
+                },
+                {
+                    id: 'SNJ-105',
+                    namaSales: 'Dedi Kurniawan',
+                    areaAkuisisi: 'Bekasi & Bogor',
+                    longLatt: '-6.238270, 106.975573',
+                    lat: -6.238270,
+                    lng: 106.975573,
+                    tgl: today,
+                    namaToko: 'Toko Kelontong Bekasi Makmur',
+                    noTerdaftar: '081933445566',
+                    alamat: 'Jl. Jend. Ahmad Yani No. 102, Marga Jaya',
+                    district: 'Bekasi Selatan',
+                    regency: 'Kota Bekasi',
+                    deploy: 'Done Deploy',
+                    aktifPayment: '4 Week',
+                    approveAkuisisi: true
+                },
+                {
+                    id: 'SNJ-106',
+                    namaSales: 'Dedi Kurniawan',
+                    areaAkuisisi: 'Bekasi & Bogor',
+                    longLatt: '-6.597147, 106.806039',
+                    lat: -6.597147,
+                    lng: 106.806039,
+                    tgl: today,
+                    namaToko: 'Grosir Sembako Pajajaran Bogor',
+                    noTerdaftar: '082155667788',
+                    alamat: 'Jl. Raya Pajajaran No. 55, Baranangsiang',
+                    district: 'Bogor Timur',
+                    regency: 'Kota Bogor',
+                    deploy: 'Done Deploy',
+                    aktifPayment: '1 Week',
+                    approveAkuisisi: true
+                }
+            ];
+
+            setActiveSalesProfile(salesProfiles[0].namaSales, salesProfiles[0].areaAkuisisi, false);
+            saveAllToStorage();
+            syncAllUI();
+            if (notify) showToast('Data contoh area Jabodetabek berhasil dimuat!', 'success');
+        }
+
+        // =====================================================================
+        // 5. SIDEBAR (1): DATA SALES & AREA AKUISISI
+        // =====================================================================
+        function handleSaveSalesProfile(e) {
+            e.preventDefault();
+            const nama = document.getElementById('s1-nama-sales').value.trim();
+            const area = document.getElementById('s1-area-akuisisi').value.trim();
+            if (!nama || !area) return;
+
+            const existingIdx = salesProfiles.findIndex(p => p.namaSales.toLowerCase() === nama.toLowerCase());
+            if (existingIdx !== -1) {
+                salesProfiles[existingIdx].areaAkuisisi = area;
+            } else {
+                salesProfiles.unshift({ namaSales: nama, areaAkuisisi: area });
+            }
+
+            setActiveSalesProfile(nama, area, true);
+            saveAllToStorage();
+            syncAllUI();
+        }
+
+        function setActiveSalesProfile(namaSales, areaAkuisisi, notify = true) {
+            activeProfile = { namaSales, areaAkuisisi };
+            document.getElementById('header-active-sales').textContent = `${namaSales} (${areaAkuisisi})`;
+            document.getElementById('s1-nama-sales').value = namaSales;
+            document.getElementById('s1-area-akuisisi').value = areaAkuisisi;
+
+            // Otomatis isi di form Visit Sales Sidebar (2)
+            document.getElementById('v-nama-sales').value = namaSales;
+            document.getElementById('v-area-akuisisi').value = areaAkuisisi;
+
+            if (notify) {
+                showToast(`Profil aktif: ${namaSales} — Area: ${areaAkuisisi}`, 'success');
+            }
+            renderSidebar1Profiles();
+        }
+
+        function renderSidebar1Profiles() {
+            const container = document.getElementById('s1-sales-profiles-grid');
+            document.getElementById('s1-profile-count').textContent = `${salesProfiles.length} Profil`;
+
+            if (salesProfiles.length === 0) {
+                container.innerHTML = `<div class="col-span-full text-xs opacity-75 p-4 glass-card-3d rounded-2xl">Belum ada profil sales. Silakan isi manual pada form di atas.</div>`;
+                return;
+            }
+
+            container.innerHTML = salesProfiles.map(p => {
+                const isSelected = activeProfile.namaSales.toLowerCase() === p.namaSales.toLowerCase();
+                const merchantCount = visits.filter(v => v.namaSales.toLowerCase() === p.namaSales.toLowerCase()).length;
+                return `
+                    <div onclick="setActiveSalesProfile('${escapeAttr(p.namaSales)}', '${escapeAttr(p.areaAkuisisi)}', true)" class="glass-card-3d rounded-2xl p-3.5 cursor-pointer flex items-start justify-between gap-2 ${isSelected ? 'border-emerald-400 bg-emerald-500/15' : ''}">
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-2">
+                                <span class="font-display font-bold text-sm truncate">${escapeHtml(p.namaSales)}</span>
+                                ${isSelected ? '<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500 text-white">Aktif</span>' : ''}
+                            </div>
+                            <div class="text-xs opacity-80 truncate mt-0.5">${escapeHtml(p.areaAkuisisi)}</div>
+                            <div class="text-[11px] font-semibold text-emerald-400 mt-1.5">${merchantCount} Toko Kunjungan</div>
+                        </div>
+                        <i data-lucide="check-circle-2" class="w-4 h-4 shrink-0 ${isSelected ? 'text-emerald-400' : 'opacity-30'}"></i>
+                    </div>
+                `;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        // =====================================================================
+        // 6. SIDEBAR (2): VISIT SALES & AUTO GPS
+        // =====================================================================
+        function parseCoordinates(raw) {
+            if (!raw) return null;
+            const match = raw.match(/(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/);
+            if (!match) return null;
+            const lat = parseFloat(match[1]);
+            const lng = parseFloat(match[2]);
+            if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
+            return { lat, lng };
+        }
+
+        function captureAutoGPS() {
+            const btn = document.getElementById('btn-auto-gps');
+            if (!navigator.geolocation) {
+                showToast('Perangkat/browser tidak mendukung GPS Geolocation.', 'error');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Mengunci GPS...</span>`;
+            lucide.createIcons();
+
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    const coord = `${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}`;
+                    document.getElementById('v-long-latt').value = coord;
+                    btn.disabled = false;
+                    btn.innerHTML = `<i data-lucide="navigation" class="w-4 h-4"></i><span>Ambil GPS Otomatis</span>`;
+                    lucide.createIcons();
+                    showToast(`Koordinat GPS terkunci: ${coord}`, 'success');
+                },
+                () => {
+                    btn.disabled = false;
+                    btn.innerHTML = `<i data-lucide="navigation" class="w-4 h-4"></i><span>Ambil GPS Otomatis</span>`;
+                    lucide.createIcons();
+                    showToast('Gagal mengambil GPS otomatis. Pastikan izin lokasi aktif atau isi manual.', 'error');
+                },
+                { enableHighAccuracy: true, timeout: 10000 }
+            );
+        }
+
+        function handleSaveVisit(e) {
+            e.preventDefault();
+            const editId = document.getElementById('visit-edit-id').value;
+            const namaSales = document.getElementById('v-nama-sales').value.trim();
+            const areaAkuisisi = document.getElementById('v-area-akuisisi').value.trim();
+            const longLattRaw = document.getElementById('v-long-latt').value.trim();
+            const tgl = document.getElementById('v-tgl').value;
+            const namaToko = document.getElementById('v-nama-toko').value.trim();
+            const noTerdaftar = document.getElementById('v-no-terdaftar').value.trim();
+            const alamat = document.getElementById('v-alamat').value.trim();
+            const district = document.getElementById('v-district').value.trim();
+            const regency = document.getElementById('v-regency').value.trim();
+
+            const coords = parseCoordinates(longLattRaw);
+            if (!coords) {
+                showToast('Format Long Latt harus valid, contoh: -6.224150, 106.518920', 'error');
+                document.getElementById('v-long-latt').focus();
+                return;
+            }
+
+            const cleanCoord = `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`;
+
+            if (editId) {
+                const idx = visits.findIndex(v => v.id === editId);
+                if (idx !== -1) {
+                    visits[idx] = {
+                        ...visits[idx],
+                        namaSales, areaAkuisisi,
+                        longLatt: cleanCoord, lat: coords.lat, lng: coords.lng,
+                        tgl, namaToko, noTerdaftar, alamat, district, regency
+                    };
+                    syncToGoogleAppsScript(visits[idx], 'UPDATE');
+                }
+                showToast(`Data visit "${namaToko}" diperbarui!`, 'success');
+            } else {
+                const newRecord = {
+                    id: 'SNJ-' + Date.now().toString().slice(-6),
+                    namaSales,
+                    areaAkuisisi,
+                    longLatt: cleanCoord,
+                    lat: coords.lat,
+                    lng: coords.lng,
+                    tgl,
+                    namaToko,
+                    noTerdaftar,
+                    alamat,
+                    district,
+                    regency,
+                    deploy: 'Pending Deploy',
+                    aktifPayment: '- Belum Aktif',
+                    approveAkuisisi: true
+                };
+                visits.unshift(newRecord);
+                selectedMerchantIdSidebar3 = newRecord.id;
+                syncToGoogleAppsScript(newRecord, 'CREATE');
+                showToast(`Visit "${namaToko}" tersimpan (Status: Pending Deploy).`, 'success');
+            }
+
+            rebuildProfilesFromVisits();
+            saveAllToStorage();
+            resetVisitForm();
+            syncAllUI();
+        }
+
+        function resetVisitForm() {
+            document.getElementById('visit-form').reset();
+            document.getElementById('visit-edit-id').value = '';
+            document.getElementById('v-submit-btn-text').textContent = 'Simpan Data Visit';
+            setTodayDate();
+            document.getElementById('v-nama-sales').value = activeProfile.namaSales || '';
+            document.getElementById('v-area-akuisisi').value = activeProfile.areaAkuisisi || '';
+        }
+
+        // =====================================================================
+        // 7. SIDEBAR (3): MAPS ALAMAT TOKO & DEPLOY (DONE / PROSES / PENDING)
+        // =====================================================================
+        function initOrUpdateSidebar3Map() {
+            if (typeof L === 'undefined') return;
+            if (!s3Map) {
+                s3Map = L.map('s3-leaflet-map', {
+                    center: DEFAULT_COORDS,
+                    zoom: 11
+                });
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; OpenStreetMap | Field Sales Sinau Jabodetabek'
+                }).addTo(s3Map);
+                s3MarkersLayer = L.featureGroup().addTo(s3Map);
+            }
+            s3Map.invalidateSize();
+            renderSidebar3();
+        }
+
+        function createPinIcon(deployStatus) {
+            const isDone = deployStatus === 'Done Deploy';
+            const color = isDone ? '#10b981' : '#f59e0b';
+            const glow = isDone ? 'rgba(16, 185, 129, 0.35)' : 'rgba(245, 158, 11, 0.35)';
+            return L.divIcon({
+                className: 'custom-pin',
+                html: `<div style="width:26px;height:26px;border-radius:50%;background:${glow};display:flex;align-items:center;justify-content:center;">
+                        <div style="width:14px;height:14px;border-radius:50%;background:${color};border:2.5px solid #fff;box-shadow:0 2px 5px rgba(0,0,0,0.45);"></div>
+                       </div>`,
+                iconSize: [26, 26],
+                iconAnchor: [13, 13]
+            });
+        }
+
+        function renderSidebar3() {
+            const selector = document.getElementById('s3-merchant-selector');
+            const cardContainer = document.getElementById('s3-selected-card');
+            const quickList = document.getElementById('s3-quick-list');
+
+            if (visits.length === 0) {
+                selector.innerHTML = `<option value="">Belum ada data toko</option>`;
+                cardContainer.innerHTML = `<p class="text-xs opacity-75">Belum ada data kunjungan toko. Silakan input di Sidebar (2).</p>`;
+                quickList.innerHTML = '';
+                return;
+            }
+
+            if (!selectedMerchantIdSidebar3 || !visits.some(v => v.id === selectedMerchantIdSidebar3)) {
+                selectedMerchantIdSidebar3 = visits[0].id;
+            }
+
+            selector.innerHTML = visits.map(v => `
+                <option value="${v.id}" ${v.id === selectedMerchantIdSidebar3 ? 'selected' : ''}>
+                    ${escapeHtml(v.namaToko)} — (${escapeHtml(v.deploy)})
+                </option>
+            `).join('');
+
+            const current = visits.find(v => v.id === selectedMerchantIdSidebar3) || visits[0];
+            const isDone = current.deploy === 'Done Deploy';
+
+            cardContainer.innerHTML = `
+                <div class="flex items-start justify-between gap-2 border-b border-emerald-500/20 pb-3">
+                    <div>
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-400">Detail Toko Terpilih</span>
+                        <h3 class="font-display font-extrabold text-base sm:text-lg mt-0.5">${escapeHtml(current.namaToko)}</h3>
+                        <p class="text-xs opacity-80">Sales: <strong>${escapeHtml(current.namaSales)}</strong> • Tgl: ${escapeHtml(current.tgl)}</p>
+                    </div>
+                    <a href="https://www.google.com/maps?q=${current.lat},${current.lng}" target="_blank" rel="noopener noreferrer" class="p-2 rounded-xl bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/35 border border-emerald-400/30" title="Buka di Google Maps">
+                        <i data-lucide="external-link" class="w-4 h-4"></i>
+                    </a>
+                </div>
+
+                <div class="space-y-1.5 text-xs">
+                    <div><span class="opacity-70">Alamat:</span> <strong>${escapeHtml(current.alamat)}</strong></div>
+                    <div><span class="opacity-70">Wilayah:</span> <strong>${escapeHtml(current.district)}, ${escapeHtml(current.regency)}</strong></div>
+                    <div><span class="opacity-70">Koordinat:</span> <code class="text-emerald-400 font-mono">${escapeHtml(current.longLatt)}</code></div>
+                    <div><span class="opacity-70">NO Terdaftar:</span> <span class="font-mono font-semibold">${escapeHtml(current.noTerdaftar)}</span></div>
+                </div>
+
+                <div class="pt-2 border-t border-emerald-500/20 space-y-2">
+                    <label class="block text-xs font-bold text-emerald-300">Status Deploy (Dropdown):</label>
+                    <select onchange="updateMerchantDeploy('${current.id}', this.value)" class="input-glass w-full px-3.5 py-2.5 rounded-xl text-sm font-bold cursor-pointer ${isDone ? 'border-emerald-400 text-emerald-300' : 'border-amber-400 text-amber-300'}">
+                        <option value="Done Deploy" ${current.deploy === 'Done Deploy' ? 'selected' : ''}>- Done Deploy</option>
+                        <option value="Proses Deploy" ${current.deploy === 'Proses Deploy' ? 'selected' : ''}>- Proses Deploy</option>
+                        <option value="Pending Deploy" ${current.deploy === 'Pending Deploy' ? 'selected' : ''}>- Pending Deploy (Belum Terdeploy)</option>
+                    </select>
+                </div>
+            `;
+
+            quickList.innerHTML = visits.map(v => {
+                const active = v.id === current.id;
+                const badge = v.deploy === 'Done Deploy'
+                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30'
+                    : 'bg-amber-500/20 text-amber-300 border-amber-400/30';
+                return `
+                    <div onclick="onSelectMerchantSidebar3('${v.id}')" class="p-2.5 rounded-xl border cursor-pointer flex items-center justify-between gap-2 text-xs transition ${active ? 'bg-emerald-500/20 border-emerald-400' : 'border-emerald-500/15 hover:bg-emerald-500/10'}">
+                        <div class="min-w-0">
+                            <div class="font-bold truncate">${escapeHtml(v.namaToko)}</div>
+                            <div class="text-[11px] opacity-75 truncate">${escapeHtml(v.district)}, ${escapeHtml(v.regency)}</div>
+                        </div>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border shrink-0 ${badge}">${escapeHtml(v.deploy)}</span>
+                    </div>
+                `;
+            }).join('');
+
+            // Update Marker Peta Leaflet Sidebar (3)
+            if (s3Map && s3MarkersLayer) {
+                s3MarkersLayer.clearLayers();
+                visits.forEach(v => {
+                    const marker = L.marker([v.lat, v.lng], { icon: createPinIcon(v.deploy) });
+                    marker.bindPopup(`
+                        <div style="font-family:Inter,sans-serif;color:#022c22;min-width:170px;">
+                            <strong style="font-size:13px;">${escapeHtml(v.namaToko)}</strong><br/>
+                            <span style="font-size:11px;">${escapeHtml(v.alamat)}</span><br/>
+                            <span style="font-size:11px;font-weight:700;color:#059669;">Status: ${escapeHtml(v.deploy)}</span>
+                        </div>
+                    `);
+                    marker.on('click', () => {
+                        selectedMerchantIdSidebar3 = v.id;
+                        renderSidebar3();
+                    });
+                    s3MarkersLayer.addLayer(marker);
+                });
+                s3Map.setView([current.lat, current.lng], 15);
+            }
+
+            lucide.createIcons();
+        }
+
+        function onSelectMerchantSidebar3(id) {
+            selectedMerchantIdSidebar3 = id;
+            renderSidebar3();
+        }
+
+        function updateMerchantDeploy(id, newStatus) {
+            const idx = visits.findIndex(v => v.id === id);
+            if (idx === -1) return;
+            visits[idx].deploy = newStatus;
+            saveAllToStorage();
+            syncToGoogleAppsScript(visits[idx], 'UPDATE');
+            syncAllUI();
+            showToast(`Status Deploy "${visits[idx].namaToko}" diubah ke ${newStatus}`, 'success');
+        }
+
+        // =====================================================================
+        // 8. SIDEBAR (4): MERCHANT AKTIF PAYMENT (1 WEEK - 5 WEEK)
+        // =====================================================================
+        function renderSidebar4() {
+            const weeks = ['1 Week', '2 Week', '3 Week', '4 Week', '5 Week'];
+            const allOptions = [...weeks, '- Belum Aktif'];
+            const summaryGrid = document.getElementById('s4-week-summary-grid');
+            const filterVal = document.getElementById('s4-filter-week').value;
+
+            summaryGrid.innerHTML = allOptions.map(opt => {
+                const count = visits.filter(v => v.aktifPayment === opt).length;
+                const isSelected = filterVal === opt;
+                return `
+                    <div onclick="document.getElementById('s4-filter-week').value='${opt}';renderSidebar4();" class="glass-card-3d rounded-2xl p-3 cursor-pointer text-center ${isSelected ? 'border-emerald-400 bg-emerald-500/20' : ''}">
+                        <div class="text-[11px] font-bold text-emerald-400">${opt}</div>
+                        <div class="font-display font-extrabold text-xl mt-1">${count}</div>
+                    </div>
+                `;
+            }).join('');
+
+            const filtered = visits.filter(v => filterVal === 'ALL' || v.aktifPayment === filterVal);
+            const container = document.getElementById('s4-merchant-cards');
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="col-span-full glass-card-3d rounded-2xl p-6 text-center text-xs opacity-75">Tidak ada merchant pada kategori "${filterVal}".</div>`;
+                return;
+            }
+
+            container.innerHTML = filtered.map(v => {
+                const isActive = weeks.includes(v.aktifPayment);
+                return `
+                    <div class="glass-card-3d rounded-2xl p-4 flex flex-col justify-between gap-3">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="font-display font-bold text-sm sm:text-base truncate">${escapeHtml(v.namaToko)}</span>
+                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${v.deploy === 'Done Deploy' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'}">${escapeHtml(v.deploy)}</span>
+                                </div>
+                                <p class="text-xs opacity-80 mt-0.5">Sales: <strong>${escapeHtml(v.namaSales)}</strong> • ${escapeHtml(v.district)}, ${escapeHtml(v.regency)}</p>
+                                <p class="text-xs font-mono text-emerald-400 mt-0.5">${escapeHtml(v.noTerdaftar)}</p>
+                            </div>
+                        </div>
+
+                        <div class="pt-2 border-t border-emerald-500/20 flex items-center justify-between gap-3">
+                            <label class="text-xs font-semibold opacity-85 shrink-0">Aktif Payment:</label>
+                            <select onchange="updateMerchantPayment('${v.id}', this.value)" class="input-glass flex-1 px-3 py-2 rounded-xl text-xs font-bold cursor-pointer ${isActive ? 'text-emerald-300 border-emerald-400/50' : ''}">
+                                <option value="- Belum Aktif" ${v.aktifPayment === '- Belum Aktif' ? 'selected' : ''}>- Belum Aktif</option>
+                                <option value="1 Week" ${v.aktifPayment === '1 Week' ? 'selected' : ''}>- 1 Week</option>
+                                <option value="2 Week" ${v.aktifPayment === '2 Week' ? 'selected' : ''}>- 2 Week</option>
+                                <option value="3 Week" ${v.aktifPayment === '3 Week' ? 'selected' : ''}>- 3 Week</option>
+                                <option value="4 Week" ${v.aktifPayment === '4 Week' ? 'selected' : ''}>- 4 Week</option>
+                                <option value="5 Week" ${v.aktifPayment === '5 Week' ? 'selected' : ''}>- 5 Week</option>
+                            </select>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateMerchantPayment(id, newPayment) {
+            const idx = visits.findIndex(v => v.id === id);
+            if (idx === -1) return;
+            visits[idx].aktifPayment = newPayment;
+            saveAllToStorage();
+            syncToGoogleAppsScript(visits[idx], 'UPDATE');
+            syncAllUI();
+            showToast(`Aktif Payment "${visits[idx].namaToko}" diperbarui: ${newPayment}`, 'success');
+        }
+
+        // =====================================================================
+        // 9. SIDEBAR (5): KETERANGAN AKUISISI & ELIGIBLE PEMBAYARAN
+        // =====================================================================
+        function isMerchantEligible(v) {
+            const activeWeeks = ['1 Week', '2 Week', '3 Week', '4 Week', '5 Week'];
+            const hasApprove = v.approveAkuisisi !== false;
+            const isDoneDeploy = v.deploy === 'Done Deploy';
+            const hasMin1Week = activeWeeks.includes(v.aktifPayment);
+            return {
+                eligible: hasApprove && isDoneDeploy && hasMin1Week,
+                hasApprove,
+                isDoneDeploy,
+                hasMin1Week
+            };
+        }
+
+        function toggleApproveAkuisisi(id) {
+            const idx = visits.findIndex(v => v.id === id);
+            if (idx === -1) return;
+            visits[idx].approveAkuisisi = !(visits[idx].approveAkuisisi !== false);
+            saveAllToStorage();
+            syncToGoogleAppsScript(visits[idx], 'UPDATE');
+            syncAllUI();
+        }
+
+        function renderSidebar5() {
+            const container = document.getElementById('s5-cards-container');
+            const filter = document.getElementById('s5-filter-status').value;
+
+            let eligibleTotal = 0;
+            let notEligibleTotal = 0;
+
+            const evaluated = visits.map(v => {
+                const check = isMerchantEligible(v);
+                if (check.eligible) eligibleTotal++;
+                else notEligibleTotal++;
+                return { ...v, check };
+            });
+
+            document.getElementById('s5-eligible-count').textContent = eligibleTotal;
+            document.getElementById('s5-not-eligible-count').textContent = notEligibleTotal;
+
+            const filtered = evaluated.filter(item => {
+                if (filter === 'ELIGIBLE') return item.check.eligible;
+                if (filter === 'PENDING_SYARAT') return !item.check.eligible;
+                return true;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="col-span-full glass-card-3d rounded-2xl p-6 text-center text-xs opacity-75">Tidak ada data merchant pada filter ini.</div>`;
+                return;
+            }
+
+            container.innerHTML = filtered.map(item => {
+                const { eligible, hasApprove, isDoneDeploy, hasMin1Week } = item.check;
+                return `
+                    <div class="glass-card-3d rounded-2xl p-4 sm:p-5 space-y-3 border ${eligible ? 'border-emerald-400/60' : 'border-amber-400/35'}">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="min-w-0">
+                                <h3 class="font-display font-extrabold text-base truncate">${escapeHtml(item.namaToko)}</h3>
+                                <p class="text-xs opacity-80">Sales: <strong>${escapeHtml(item.namaSales)}</strong> • ${escapeHtml(item.areaAkuisisi)}</p>
+                                <p class="text-[11px] opacity-75 mt-0.5">${escapeHtml(item.alamat)}, ${escapeHtml(item.district)}, ${escapeHtml(item.regency)}</p>
+                            </div>
+                            ${eligible
+                                ? `<span class="px-3 py-1 rounded-full text-[11px] font-extrabold bg-emerald-500 text-white shadow shrink-0">✅ ELIGIBLE DIBAYAR</span>`
+                                : `<span class="px-3 py-1 rounded-full text-[11px] font-extrabold bg-amber-500/20 text-amber-300 border border-amber-400/40 shrink-0">⏳ BELUM ELIGIBLE</span>`
+                            }
+                        </div>
+
+                        <!-- Checklist 3 Kriteria Wajib -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2 border-t border-emerald-500/20 text-[11px]">
+                            <button type="button" onclick="toggleApproveAkuisisi('${item.id}')" class="p-2 rounded-xl border text-left flex items-center gap-1.5 cursor-pointer ${hasApprove ? 'bg-emerald-500/15 border-emerald-400/40 text-emerald-300' : 'bg-rose-500/15 border-rose-400/40 text-rose-300'}" title="Klik untuk ubah status Approve Akuisisi">
+                                <i data-lucide="${hasApprove ? 'check-circle-2' : 'x-circle'}" class="w-3.5 h-3.5 shrink-0"></i>
+                                <span class="font-bold truncate">1. Approve Akuisisi</span>
+                            </button>
+
+                            <div class="p-2 rounded-xl border flex items-center gap-1.5 ${isDoneDeploy ? 'bg-emerald-500/15 border-emerald-400/40 text-emerald-300' : 'bg-amber-500/15 border-amber-400/40 text-amber-300'}">
+                                <i data-lucide="${isDoneDeploy ? 'check-circle-2' : 'clock'}" class="w-3.5 h-3.5 shrink-0"></i>
+                                <span class="font-bold truncate">2. ${escapeHtml(item.deploy)}</span>
+                            </div>
+
+                            <div class="p-2 rounded-xl border flex items-center gap-1.5 ${hasMin1Week ? 'bg-emerald-500/15 border-emerald-400/40 text-emerald-300' : 'bg-amber-500/15 border-amber-400/40 text-amber-300'}">
+                                <i data-lucide="${hasMin1Week ? 'check-circle-2' : 'clock'}" class="w-3.5 h-3.5 shrink-0"></i>
+                                <span class="font-bold truncate">3. ${escapeHtml(item.aktifPayment)}</span>
+                            </div>
+                        </div>
+
+                        <div class="text-[11px] opacity-85 bg-black/20 rounded-xl p-2.5">
+                            ${eligible
+                                ? `<span class="text-emerald-300 font-semibold">Keterangan:</span> Toko terverifikasi Approve Akuisisi, sudah Done Deploy, dan aktif transaksi (${escapeHtml(item.aktifPayment)}). <strong>Memenuhi syarat pembayaran insentif.</strong>`
+                                : `<span class="text-amber-300 font-semibold">Keterangan:</span> Menunggu kelengkapan syarat (${!hasApprove ? 'Approve Akuisisi, ' : ''}${!isDoneDeploy ? 'Done Deploy, ' : ''}${!hasMin1Week ? 'Aktif Payment min. 1 Week' : ''}) sebelum dibayarkan.`
+                            }
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            lucide.createIcons();
+        }
+
+        function exportEligibleCSV() {
+            if (visits.length === 0) {
+                showToast('Tidak ada data untuk di-export.', 'error');
+                return;
+            }
+            const headers = [
+                'ID Toko', 'Tanggal', 'Nama Sales', 'Area Akuisisi', 'Nama Toko', 'NO Terdaftar',
+                'Long Latt', 'Alamat', 'District', 'Regency', 'Status Deploy', 'Aktif Payment',
+                'Approve Akuisisi', 'Status Pembayaran'
+            ];
+            const rows = [headers.join(',')];
+            visits.forEach(v => {
+                const { eligible } = isMerchantEligible(v);
+                const row = [
+                    v.id, v.tgl, v.namaSales, v.areaAkuisisi, v.namaToko, `'${v.noTerdaftar}`,
+                    v.longLatt, v.alamat, v.district, v.regency, v.deploy, v.aktifPayment,
+                    v.approveAkuisisi !== false ? 'Approve' : 'Belum Approve',
+                    eligible ? 'ELIGIBLE DIBAYAR' : 'BELUM MEMENUHI SYARAT'
+                ].map(val => `"${String(val).replace(/"/g, '""')}"`);
+                rows.push(row.join(','));
+            });
+
+            const blob = new Blob(['\uFEFF' + rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Field_Sales_Sinau_Jabodetabek_Eligible_${new Date().toISOString().slice(0, 10)}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('File CSV Laporan Akuisisi & Eligible Pembayaran berhasil diunduh!', 'success');
+        }
+
+        // =====================================================================
+        // 10. 4 BAR DI BAWAH (SINKRONISASI BAR 1 -> BAR 2 -> BAR 3 -> BAR 4)
+        // =====================================================================
+        function activateBar3Map() {
+            if (typeof L === 'undefined') return;
+            bar3MapActivated = true;
+            document.getElementById('bar3-load-map-btn').classList.add('hidden');
+            document.getElementById('bar3-mini-map').classList.remove('hidden');
+
+            if (!bar3Map) {
+                bar3Map = L.map('bar3-mini-map', {
+                    center: DEFAULT_COORDS,
+                    zoom: 12,
+                    zoomControl: false,
+                    attributionControl: false
+                });
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(bar3Map);
+                bar3MarkersLayer = L.featureGroup().addTo(bar3Map);
+            }
+            setTimeout(() => {
+                bar3Map.invalidateSize();
+                renderBottom4Bars();
+            }, 80);
+        }
+
+        function onBar1SalesChange(selectedSales) {
+            bar1SelectedSales = selectedSales;
+            bar2SelectedMerchantId = ''; // Reset agar otomatis memilih merchant pertama milik sales tsb
+            renderBottom4Bars();
+        }
+
+        function onBar2MerchantChange(merchantId) {
+            bar2SelectedMerchantId = merchantId;
+            renderBottom4Bars();
+        }
+
+        function renderBottom4Bars() {
+            // 1. Populate Dropdown Bar (1): Daftar Nama Sales unik
+            const uniqueSales = Array.from(new Set([
+                ...salesProfiles.map(p => p.namaSales),
+                ...visits.map(v => v.namaSales)
+            ])).filter(Boolean);
+
+            const bar1Select = document.getElementById('bar1-sales-select');
+            if (bar1SelectedSales !== 'ALL' && !uniqueSales.includes(bar1SelectedSales)) {
+                bar1SelectedSales = 'ALL';
+            }
+
+            bar1Select.innerHTML = `<option value="ALL">-- Semua Sales (${uniqueSales.length} Sales) --</option>` +
+                uniqueSales.map(s => `<option value="${escapeAttr(s)}" ${bar1SelectedSales === s ? 'selected' : ''}>${escapeHtml(s)}</option>`).join('');
+
+            // Filter visits berdasarkan Bar (1)
+            const salesVisits = bar1SelectedSales === 'ALL'
+                ? visits
+                : visits.filter(v => v.namaSales === bar1SelectedSales);
+
+            const profileObj = salesProfiles.find(p => p.namaSales === bar1SelectedSales);
+            const areaText = bar1SelectedSales === 'ALL'
+                ? 'Seluruh Area Akuisisi'
+                : (profileObj ? profileObj.areaAkuisisi : (salesVisits[0]?.areaAkuisisi || '-'));
+
+            document.getElementById('bar1-sales-summary').innerHTML = `
+                <div class="truncate"><strong>Area:</strong> ${escapeHtml(areaText)}</div>
+                <div><strong>Total Akuisisi:</strong> <span class="text-emerald-400 font-bold">${salesVisits.length} Merchant</span></div>
+            `;
+
+            // 2. Populate Dropdown Bar (2): Nama Merchant terintegrasi ke Bar (1)
+            const bar2Select = document.getElementById('bar2-merchant-select');
+            document.getElementById('bar2-count-badge').textContent = `${salesVisits.length} Toko`;
+
+            if (salesVisits.length === 0) {
+                bar2Select.innerHTML = `<option value="">Tidak ada merchant</option>`;
+                document.getElementById('bar2-merchant-detail').innerHTML = `<span class="opacity-75">Belum ada data toko untuk sales ini.</span>`;
+                document.getElementById('bar3-coord-info').textContent = 'Koordinat: -';
+                if (bar3MarkersLayer) bar3MarkersLayer.clearLayers();
+            } else {
+                if (!bar2SelectedMerchantId || !salesVisits.some(v => v.id === bar2SelectedMerchantId)) {
+                    bar2SelectedMerchantId = salesVisits[0].id;
+                }
+
+                bar2Select.innerHTML = salesVisits.map(m => `
+                    <option value="${m.id}" ${m.id === bar2SelectedMerchantId ? 'selected' : ''}>
+                        ${escapeHtml(m.namaToko)} (${escapeHtml(m.district)})
+                    </option>
+                `).join('');
+
+                const activeMerchant = salesVisits.find(m => m.id === bar2SelectedMerchantId) || salesVisits[0];
+
+                document.getElementById('bar2-merchant-detail').innerHTML = `
+                    <div class="flex items-center justify-between gap-1">
+                        <span class="font-mono text-emerald-300 font-bold">${escapeHtml(activeMerchant.noTerdaftar)}</span>
+                        <span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${activeMerchant.deploy === 'Done Deploy' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'}">${escapeHtml(activeMerchant.deploy)}</span>
+                    </div>
+                    <div class="truncate opacity-85">${escapeHtml(activeMerchant.district)}, ${escapeHtml(activeMerchant.regency)} • Pay: <strong>${escapeHtml(activeMerchant.aktifPayment)}</strong></div>
+                `;
+
+                // 3. Bar (3): Update Maps Merchant & Koordinat
+                document.getElementById('bar3-gmaps-link').href = `https://www.google.com/maps?q=${activeMerchant.lat},${activeMerchant.lng}`;
+                document.getElementById('bar3-coord-info').textContent = `${activeMerchant.longLatt} • ${activeMerchant.alamat}`;
+
+                if (bar3MapActivated && bar3Map && bar3MarkersLayer) {
+                    bar3Map.invalidateSize();
+                    bar3MarkersLayer.clearLayers();
+                    salesVisits.forEach(m => {
+                        const mk = L.marker([m.lat, m.lng], { icon: createPinIcon(m.deploy) });
+                        mk.on('click', () => {
+                            bar2SelectedMerchantId = m.id;
+                            renderBottom4Bars();
+                        });
+                        bar3MarkersLayer.addLayer(mk);
+                    });
+                    bar3Map.setView([activeMerchant.lat, activeMerchant.lng], 15);
+                }
+            }
+
+            // 4. Bar (4): Status Belum Terdeploy (Pending Deploy / Proses Deploy)
+            const pendingList = salesVisits.filter(v => v.deploy !== 'Done Deploy');
+            document.getElementById('bar4-pending-count').textContent = `${pendingList.length} Pending`;
+            const bar4Container = document.getElementById('bar4-pending-list');
+
+            if (pendingList.length === 0) {
+                bar4Container.innerHTML = `
+                    <div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-400/25 text-xs text-emerald-300 font-semibold flex items-center gap-2">
+                        <i data-lucide="check-circle-2" class="w-4 h-4 shrink-0"></i>
+                        <span>Semua merchant sudah Done Deploy!</span>
+                    </div>
+                `;
+            } else {
+                bar4Container.innerHTML = pendingList.map(p => `
+                    <div class="p-2 rounded-xl bg-amber-500/10 border border-amber-400/30 flex items-center justify-between gap-2 text-[11px]">
+                        <div class="min-w-0">
+                            <div class="font-bold truncate">${escapeHtml(p.namaToko)}</div>
+                            <div class="opacity-75 truncate">${escapeHtml(p.namaSales)} • ${escapeHtml(p.deploy)}</div>
+                        </div>
+                        <button onclick="updateMerchantDeploy('${p.id}', 'Done Deploy')" class="px-2 py-1 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-[10px] shrink-0 cursor-pointer" title="Tandai Done Deploy">
+                            Done
+                        </button>
+                    </div>
+                `).join('');
+            }
+
+            lucide.createIcons();
+        }
+
+        // =====================================================================
+        // 11. SINKRONISASI GLOBAL & MODAL RESET
+        // =====================================================================
+        function syncAllUI() {
+            document.getElementById('sidebar-total-badge').textContent = `${visits.length} Toko`;
+            renderSidebar1Profiles();
+            renderSidebar3();
+            renderSidebar4();
+            renderSidebar5();
+            renderBottom4Bars();
+            lucide.createIcons();
+        }
+
+        function openResetModal() {
+            const m = document.getElementById('reset-modal');
+            m.classList.remove('hidden');
+            m.classList.add('flex');
+        }
+
+        function closeResetModal() {
+            const m = document.getElementById('reset-modal');
+            m.classList.add('hidden');
+            m.classList.remove('flex');
+        }
+
+        function executeResetData() {
+            visits = [];
+            salesProfiles = [];
+            activeProfile = { namaSales: '', areaAkuisisi: '' };
+            document.getElementById('header-active-sales').textContent = '-';
+            saveAllToStorage();
+            closeResetModal();
+            syncAllUI();
+            showToast('Seluruh database lokal telah dikosongkan.', 'info');
+        }
+
+        // =====================================================================
+        // 12. UTILITAS TOAST & ESCAPE HTML
+        // =====================================================================
+        function showToast(msg, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const el = document.createElement('div');
+            const colors = {
+                success: 'bg-emerald-950/95 border-emerald-400 text-emerald-100',
+                error: 'bg-rose-950/95 border-rose-400 text-rose-100',
+                info: 'bg-teal-950/95 border-teal-400 text-teal-100'
+            };
+            const icons = {
+                success: 'check-circle',
+                error: 'alert-circle',
+                info: 'info'
+            };
+            el.className = `pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-2xl border shadow-2xl backdrop-blur-md text-xs sm:text-sm font-medium transition-all duration-300 ${colors[type] || colors.success}`;
+            el.innerHTML = `<i data-lucide="${icons[type] || 'info'}" class="w-4 h-4 shrink-0"></i><span>${escapeHtml(msg)}</span>`;
+            container.appendChild(el);
+            lucide.createIcons();
+
+            setTimeout(() => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(-6px)';
+                setTimeout(() => el.remove(), 280);
+            }, 3200);
+        }
+
+        function escapeHtml(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function escapeAttr(str) {
+            return String(str || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        }
+    </script>
+</body>
+</html>
